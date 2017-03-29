@@ -1,0 +1,49 @@
+ca:
+  image: hyperledger/fabric-ca:x86_64-1.0.0-alpha
+  ports:
+    - 7054:7054
+  volumes:
+    - ./membersrvc.yaml:$GOPATH/src/github.com/hyperledger/fabric/membersrvc/membersrvc.yaml
+  command: fabric-ca-server start -b will:willpwd
+
+# membersrvc is being deprecate in favor of -ca
+# membersrvc:
+#   image: hyperledger/fabric-membersrvc
+#   ports:
+#     - "7054:7054"
+#   command: membersrvc
+
+# orderer:
+#   image: hyperledger/fabric-orderer
+#   environment:
+#     - ORDERER_GENERAL_LEDGERTYPE=ram
+#     - ORDERER_GENERAL_BATCHTIMEOUT=10s
+#     - ORDERER_GENERAL_BATCHSIZE_MAXMESSAGECOUNT=10
+#     - ORDERER_GENERAL_MAXWINDOWSIZE=1000
+#     - ORDERER_GENERAL_ORDERERTYPE=solo
+#     - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+#     - ORDERER_GENERAL_LISTENPORT=7050
+#     - ORDERER_RAMLEDGER_HISTORY_SIZE=100
+#   ports:
+#     - 7050:7050
+#   links:
+#     - membersrvc
+
+vp:
+  image: hyperledger/fabric-peer:x86_64-1.0.0-alpha
+  links:
+    - ca
+    # - orderer
+  ports:
+    - 7050:7050 # rest
+    - 7051:7051 # grpc
+    # - 7052:7052
+    # - 7053:7053
+  environment:
+    - CORE_PEER_ADDRESSAUTODETECT=true
+    - CORE_PEER_COMMITTER_LEDGER_ORDERER=orderer:7050
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  command: peer node start --peer-chaincodedev
+
+  

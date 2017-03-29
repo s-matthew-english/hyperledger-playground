@@ -1,0 +1,128 @@
+= KI Decentralized Hyperledger Fabric Playground
+
+== Intro
+
+This projects aims at building a playground to use as base for projects
+
+
+== Usage
+
+	docker-compose up
+
+	nmap localhost -p 7000-8000
+
+Make sure GOPATH is correct and in your PATH.
+Install +gom+.
+
+Build your chaincode:
+
+	cd chaincode-example01
+	go build
+
+NOTE: if you miss the shim dependency, use go get github.com/..../shim
+
+== Tricky commands:
+
+This command starts the ledger
+
+	dcp down && dcp up
+
+This command logs in a user who already exists in membersrvc
+
+	curl -d '{"enrollId": "matthew", "enrollSecret":"Abc123" }'  http://localhost:7050/registrar
+
+Log yourself onto the memberssrvc machine (docker container) so you can look at the modified file, do that with the command "output modified file contents command"
+
+	docker exec -it membersrvc /bin/bash
+
+Output modified file contents command
+
+	cat /opt/gopath/src/github.com/hyperledger/fabric/membersrvc/membersrvc.yaml
+
+show the chain info
+
+	curl http://localhost:7050/chain
+
+log in a new uesr
+
+	curl -d '{"enrollId": "USERNAME", "enrollSecret":"PASSWORD" }'  http://localhost:50/registrar
+
+
+deploy:
+
+https://github.com/hyperledger/fabric/blob/master/docs/source/Setup/Chaincode-setup.rst
+
+	CORE_CHAINCODE_ID_NAME=mycc CORE_PEER_ADDRESS=0.0.0.0:7051 ./chaincode_example02
+
+
+.Deploy and test:
+
+to deploy: 
+	
+	docker exec -it <vp> /bin/bash
+	cd into $GOPATH
+	cd into your go project
+	go build
+	CORE_CHAINCODE_ID_NAME=mycc CORE_PEER_ADDRESS=0.0.0.0:7051 ./chaincode_example02
+
+Then send REST requests:
+
+	POST http://localhost:7050/chaincode
+	{
+	  "jsonrpc": "2.0",
+	  "method": "deploy",
+	  "params": {
+	    "type": 1,
+	    "chaincodeID":{
+	        "name": "mycc"
+	    },
+	    "ctorMsg": {
+	        "function":"init",
+	        "args": ["a","100","b","200"]
+	    }
+	  },
+	  "id": 10
+	}
+
+answer should be
+	{
+	  "jsonrpc": "2.0",
+	  "result": {
+	    "status": "OK",
+	    "message": "mycc"
+	  },
+	  "id": 10
+	}
+
+
+now you can INVOKE
+
+	{
+	  "jsonrpc": "2.0",
+	  "method": "invoke",
+	  "params": {
+	      "type": 1,
+	      "chaincodeID":{
+	          "name":"mycc"
+	      },
+	     
+	       "ctorMsg": {
+		        "function":"invoke",
+		        "args": ["a","b","200"]
+		    }
+	  },
+	  "id": 37
+	}
+
+== Resources
+
+* nice stackoverflow question on this subject
+http://stackoverflow.com/questions/43045290/hyperledger-fabric-how-to-edit-membership-services-fabric-membersrvc-users-an
+* Info on setting up a ca: 
+http://hyperledger-fabric.readthedocs.io/en/stable/Setup/ca-setup/
+
+
+
+
+
+
